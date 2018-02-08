@@ -7,15 +7,36 @@ class Search extends Component {
 
     constructor(props) {
         super(props);
+
+        const search = this.props.location.search;
+        const params = new URLSearchParams(search);
+        let username = '';
+        if ( params.get('username') ) {
+            username = params.get('username');
+        }
+
         this.state = {
-            search: '',
+            search: username,
             repoFields: [],
         };
     }
 
-    submitHandler = (e) => {
-        e.preventDefault();
+    componentWillMount(){
+        if( this.state.search ) {
+            //This behavior for cases when we have username value in query string
+            //for example, we used back arrow in browser
+            //or pasted string manually
+            this.githubDataGetter();
+        }
+    }
+
+    githubDataGetter = () => {
         const username = this.state.search;
+        //for autofill when we pushed back arrow)
+        this.props.history.push({
+            pathname: '/search/',
+            search: `?username=${username}`,
+        });
         const queryURL = `https://api.github.com/users/${username}/repos`;
         const fetchParams = {
             method: 'GET',
@@ -24,6 +45,11 @@ class Search extends Component {
         .then( response => response.json() )
         .then( result => this.reposHandler(result) )
         .catch( e => console.log(e) );
+    }
+
+    submitHandler = (e) => {
+        e.preventDefault();
+        this.githubDataGetter();
     }
 
     chandeHandler = (e) => {
@@ -50,7 +76,7 @@ class Search extends Component {
             <div>
                 <Header />
                 <form onSubmit={ (e) => this.submitHandler(e)}>
-                    <input type="text" onChange={ (e) => this.chandeHandler(e) }></input>
+                    <input type="text" onChange={ (e) => this.chandeHandler(e) } value={this.state.search}></input>
                     <button type="submit">Search</button>
                 </form>
                 <div className="resultList">
