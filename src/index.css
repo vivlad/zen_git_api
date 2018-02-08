@@ -3,3 +3,24 @@ body {
   padding: 0;
   font-family: sans-serif;
 }
+
+nav a {
+  margin: 0 20px;
+}
+
+#root {
+  text-align: center;
+}
+
+.App-header {
+  margin-bottom: 20px;
+}
+
+table {
+  display: inline-block;
+  text-align: left;
+}
+
+tr td:first-of-type {
+  font-weight: bold;
+}

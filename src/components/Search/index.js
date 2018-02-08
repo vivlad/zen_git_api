@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import { withRouter } from 'react-router-dom'
 
+import Header from '../Header';
+
 class Search extends Component {
 
     constructor(props) {
@@ -46,6 +48,7 @@ class Search extends Component {
 
         return (
             <div>
+                <Header />
                 <form onSubmit={ (e) => this.submitHandler(e)}>
                     <input type="text" onChange={ (e) => this.chandeHandler(e) }></input>
                     <button type="submit">Search</button>
