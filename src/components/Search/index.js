@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
-import { withRouter } from 'react-router-dom'
+import { withRouter, Link } from 'react-router-dom'
 
 import Header from '../Header';
+import SearchHistory from '../SearchHistory';
+import messages from '../../Utils/Messages';
 
 class Search extends Component {
 
@@ -14,10 +16,14 @@ class Search extends Component {
         if ( params.get('username') ) {
             username = params.get('username');
         }
+        const isAuth = localStorage.getItem( 'token' ) ? true : false;
+        const historyItems = localStorage.getItem( 'historyItems' ) ? JSON.parse(localStorage.getItem( 'historyItems' )) : [];
 
         this.state = {
+            isAuth: isAuth,
             search: username,
             repoFields: [],
+            historyItems: historyItems,
         };
     }
 
@@ -26,17 +32,24 @@ class Search extends Component {
             //This behavior for cases when we have username value in query string
             //for example, we used back arrow in browser
             //or pasted string manually
-            this.githubDataGetter();
+            this.githubGetData();
         }
     }
 
-    githubDataGetter = () => {
-        const username = this.state.search;
+    githubGetData = (user) => {
+        const username = user ? user : this.state.search;
         //for autofill when we pushed back arrow)
         this.props.history.push({
             pathname: '/search/',
             search: `?username=${username}`,
         });
+        //search history
+        if( this.state.historyItems.indexOf( username ) === -1) {
+            let newHistoryItems = [...this.state.historyItems, username];// It is need because setState is async!
+            this.setState({historyItems: newHistoryItems});
+            localStorage.setItem( 'historyItems', JSON.stringify( newHistoryItems ) );
+        }
+
         const queryURL = `https://api.github.com/users/${username}/repos`;
         const fetchParams = {
             method: 'GET',
@@ -49,7 +62,7 @@ class Search extends Component {
 
     submitHandler = (e) => {
         e.preventDefault();
-        this.githubDataGetter();
+        this.githubGetData();
     }
 
     chandeHandler = (e) => {
@@ -68,6 +81,16 @@ class Search extends Component {
         });
     }
 
+    historyItemClickHandler = (username) => {
+        this.setState({ search: username });
+        this.githubGetData(username);
+    }
+
+    clearHistory = () => {
+        this.setState({historyItems: []});
+        localStorage.removeItem( 'historyItems' );
+    }
+
     render() {
 
         const repoData = this.state.repoFields;
@@ -75,27 +98,46 @@ class Search extends Component {
         return (
             <div>
                 <Header />
-                <form onSubmit={ (e) => this.submitHandler(e)}>
-                    <input type="text" onChange={ (e) => this.chandeHandler(e) } value={this.state.search}></input>
-                    <button type="submit">Search</button>
-                </form>
-                <div className="resultList">
-                    { repoData.length > 0 ?
-                        <ul>
-                        { repoData.map( (el, key) => (
-                            <li
-                                key={key}
-                                link={el.url}
-                                onClick={() => this.getRepoHandler(this.state.search, el.name)}
-                            >
-                            {el.name}
-                            </li>
-                        ) ) }
-                        </ul>
-                    :
-                        <div>Nothing found</div>
-                    }
+                {!this.state.isAuth ? (
+                    <div>
+                        <p>{messages.onlyAuthorizedUsersCanUseIt}</p><br/>
+                        <Link to="/login">Login</Link>
+                    </div>
+                ) 
+                : 
+                (
+                <div>
+                    <p>{messages.enterGitUserName}</p>
+                    <SearchHistory
+                        historyItems={this.state.historyItems}
+                        historyItemClickHandler={this.historyItemClickHandler}
+                        clearHistory={this.clearHistory}
+                    />
+                    <form onSubmit={ (e) => this.submitHandler(e)}>
+                        <input type="text" onChange={ (e) => this.chandeHandler(e) } value={this.state.search}></input>
+                        <button type="submit">Search</button>
+                    </form>
+                    <div className="resultList">
+                        { repoData.length > 0 ?
+                            <ul>
+                            { repoData.map( (el, key) => (
+                                <li
+                                    key={key}
+                                    link={el.url}
+                                    onClick={() => this.getRepoHandler(this.state.search, el.name)}
+                                >
+                                {el.name}
+                                </li>
+                            ) ) }
+                            </ul>
+                        :
+                            <div>Nothing found</div>
+                        }
+                    </div>
                 </div>
+                )
+                }
+
             </div>
         );
     }

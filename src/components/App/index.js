@@ -8,7 +8,7 @@ class App extends Component {
       <div className="App">
         <Header />
         <p className="App-intro">
-          Hello
+          Hello. It is application which working with github api.
         </p>
       </div>
     );

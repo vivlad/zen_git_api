@@ -24,3 +24,20 @@ table {
 tr td:first-of-type {
   font-weight: bold;
 }
+
+.resultList,
+.historyItemsWrapper {
+  max-width: 500px;
+  display: inline-block;
+}
+
+.resultList li {
+  padding: 5px;
+  margin: 5px 0;
+  background-color: #fee;
+  cursor: pointer;
+}
+
+.resultList li:nth-child(even){
+  background-color: #efe;
+}
